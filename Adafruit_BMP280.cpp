@@ -15,6 +15,9 @@
  *  from Adafruit!
  *
  *  K.Townsend (Adafruit Industries)
+ *  
+ *  Changes to match Adafruit_BME280_Library, and allow for Wire to be passed at begin 
+ *  James Lancaster(2020 Quarantine) 
  *
  *  BSD license, all text above must be included in any redistribution
  */
@@ -28,12 +31,16 @@
  * @param  *theWire
  *         optional wire
  */
+
+Adafruit_BME280::Adafruit_BMP280() : _cs(-1), _mosi(-1), _miso(-1), _sck(-1) {}
+/*
 Adafruit_BMP280::Adafruit_BMP280(TwoWire *theWire)
     : _cs(-1), _mosi(-1), _miso(-1), _sck(-1) {
   _wire = theWire;
   temp_sensor = new Adafruit_BMP280_Temp(this);
   pressure_sensor = new Adafruit_BMP280_Pressure(this);
 }
+*/
 
 Adafruit_BMP280::~Adafruit_BMP280(void) {
   delete temp_sensor;
@@ -75,7 +82,9 @@ Adafruit_BMP280::Adafruit_BMP280(int8_t cspin, int8_t mosipin, int8_t misopin,
  *         The expected chip ID (used to validate connection).
  *  @return True if the init was successful, otherwise false.
  */
-bool Adafruit_BMP280::begin(uint8_t addr, uint8_t chipid) {
+
+bool Adafruit_BMP280::begin(uint8_t addr, TwoWire *theWire) {
+//bool Adafruit_BMP280::begin(uint8_t addr, uint8_t chipid) {
   _i2caddr = addr;
 
   if (_cs == -1) {
@@ -95,9 +104,9 @@ bool Adafruit_BMP280::begin(uint8_t addr, uint8_t chipid) {
       pinMode(_miso, INPUT);
     }
   }
-
-  if (read8(BMP280_REGISTER_CHIPID) != chipid)
-    return false;
+  
+  //if (read8(BMP280_REGISTER_CHIPID) != chipid)
+    //return false;
 
   readCoefficients();
   // write8(BMP280_REGISTER_CONTROL, 0x3F); /* needed? */
@@ -440,6 +449,10 @@ uint8_t Adafruit_BMP280::getStatus(void) {
     @return Adafruit_Sensor pointer to temperature sensor
  */
 Adafruit_Sensor *Adafruit_BMP280::getTemperatureSensor(void) {
+  if (!temp_sensor) {
+    temp_sensor = new Adafruit_BMP280_Temp(this);
+  }
+
   return temp_sensor;
 }
 
@@ -449,6 +462,9 @@ Adafruit_Sensor *Adafruit_BMP280::getTemperatureSensor(void) {
     @return Adafruit_Sensor pointer to pressure sensor
  */
 Adafruit_Sensor *Adafruit_BMP280::getPressureSensor(void) {
+  if (!pressure_sensor) {
+    pressure_sensor = new Adafruit_BME280_Pressure(this);
+  }
   return pressure_sensor;
 }
 
